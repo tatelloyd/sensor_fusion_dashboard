@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .sensor-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .sensor-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>Sensor Dashboard</h1>
+        <div class="sensor-grid">
+            <div class="sensor-card">
+                <h2>Humidity (%)</h2>
+                <div id="sensor1-value" class="sensor-value">--</div>
+            </div>
+            <div class="sensor-card">
+                <h2>Air Quality (V)</h2>
+                <div id="sensor2-value" class="sensor-value">--</div>
+            </div>
+            <div class="sensor-card">
+                <h2>Noise (dB)</h2>
+                <div id="sensor3-value" class="sensor-value">--</div>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="sensorChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Initialize chart
+        const ctx = document.getElementById('sensorChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Humidity (%)',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }, {
+                    label: 'Air Quality (V)',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    tension: 0.1
+                }, {
+                    label: 'Noise (dB)',
+                    data: [],
+                    borderColor: 'rgb(153, 102, 255)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Update sensor values and chart
+        function updateSensors() {
+            fetch('/get_sensor_data')
+                .then(response => response.json())
+                .then(data => {
+                    // Update current values
+                    document.getElementById('sensor1-value').textContent = data.sensor1;
+                    document.getElementById('sensor2-value').textContent = data.sensor2;
+                    document.getElementById('sensor3-value').textContent = data.sensor3;
+
+                    // Update chart
+                    const now = new Date().toLocaleTimeString();
+                    chart.data.labels.push(now);
+                    chart.data.datasets[0].data.push(data.sensor1);
+                    chart.data.datasets[1].data.push(data.sensor2);
+                    chart.data.datasets[2].data.push(data.sensor3);
+
+                    // Keep only last 10 data points
+                    if (chart.data.labels.length > 10) {
+                        chart.data.labels.shift();
+                        chart.data.datasets.forEach(dataset => dataset.data.shift());
+                    }
+
+                    chart.update();
+                });
+        }
+
+        // Update every 2 seconds
+        setInterval(updateSensors, 2000);
+        updateSensors(); // Initial update
+    </script>
+</body>
+</html>

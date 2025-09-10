@@ -1,0 +1,19 @@
+# Flask web framework
+Flask==2.3.3
+Flask-SocketIO==5.3.6
+
+# Sensor libraries
+adafruit-circuitpython-dht==3.7.7
+adafruit-blinka==8.22.1
+spidev==3.5
+
+# Data processing
+numpy==1.24.3
+pandas==2.0.3
+
+# Database
+sqlite3  # Built into Python
+
+# Additional utilities
+python-socketio==5.8.0
+eventlet==0.33.3
